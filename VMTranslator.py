@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from CodeWriter import generate_arithmetic, generate_pop, generate_push
+from Translator import Translator
 
 
 def get_paths(input_path):
@@ -10,7 +10,7 @@ def get_paths(input_path):
     return vm_path, vm_path.with_suffix('.asm')
 
 
-def translate_line(file_name, line):
+def translate_line(translator, line):
     parts = line.split()
     command = parts[0]
 
@@ -19,23 +19,25 @@ def translate_line(file_name, line):
         'eq', 'gt', 'lt',
         'and', 'or', 'not'
     }:
-        return generate_arithmetic(command)
+        return translator.translate_logic_arithmetic_cmds(command)
 
     if command == "push":
-        return generate_push(parts[1], int(parts[2]), file_name)
+        return translator.translate_push_cmd(parts[1], int(parts[2]))
 
     if command == "pop":
-        return generate_pop(parts[1], int(parts[2]), file_name)
+        return translator.translate_pop_cmd(parts[1], int(parts[2]))
 
 
 def translate_vm_file(file_path):
     file_name = file_path.stem
-    with open(file_path, 'r') as f:
+    translator = Translator(file_name)
+
+    with open(file_path, 'r', encoding='utf-8') as f:
         for line in f:
             # Skip comments and empty lines
             line = line.strip()
             if line and not line.startswith('//'):
-                yield translate_line(file_name, line)
+                yield translate_line(translator, line)
 
 
 def translate_file(input_path):
