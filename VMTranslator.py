@@ -1,13 +1,25 @@
+import os
 import sys
 from pathlib import Path
 from Translator import Translator
 
 
-def get_paths(input_path):
-    vm_path = Path(input_path)
-    if not vm_path.suffix == '.vm':
-        raise ValueError("Input file must be a .vm file")
-    return vm_path, vm_path.with_suffix('.asm')
+def generate_bootstrap_asm():
+    """
+    Upon reset, the hack computer will fetch and execute the instruction located in ROM[0]
+    Therefore we need to put some init code at the beginning of our generated asm
+    """
+    translator = Translator("bootstrap")
+    return [
+        "@256",
+        "D=A",
+        "@SP",
+        "M=D",
+        # We don't need to manually initialize LCL, ARG, THIS, and THAT before calling Sys.init because:
+        # Any values in them will be saved onto the stack by translate_fn_call (The saved values are never used since Sys.init never returns!)
+        # Call correctly sets up LCL and ARG
+        *translator.translate_fn_call("Sys.init", 0)
+    ]
 
 
 def translate_line(translator, line):
@@ -36,6 +48,16 @@ def translate_line(translator, line):
     if command == "if-goto":
         return translator.translate_if_goto(parts[1])
 
+    if command == "function":
+        return translator.translate_fn_declaration(parts[1], int(parts[2]))
+
+    if command == "call":
+        return translator.translate_fn_call(parts[1], int(parts[2]))
+
+    if command == "return":
+        return translator.translate_fn_return()
+
+
 def translate_vm_file(file_path):
     file_name = file_path.stem
     translator = Translator(file_name)
@@ -49,17 +71,21 @@ def translate_vm_file(file_path):
 
 
 def translate_single_file(path):
+    asm_bootstrap = generate_bootstrap_asm()
     asm_commands = translate_vm_file(path)
     with open(path.with_suffix('.asm'), 'w', encoding='UTF-8') as f:
-        # ToDo: First write init code
+        for bootstrap_command in asm_bootstrap:
+            f.write(bootstrap_command + '\n')
         for command_list in asm_commands:
             f.write('\n'.join(command_list) + '\n')
 
 
 def translate_directory(path):
+    asm_bootstrap = generate_bootstrap_asm()
     dir_name = path.stem
     with open(path.joinpath(f"{dir_name}.asm"), 'w', encoding='UTF-8') as f:
-        # ToDo: First write init code
+        for bootstrap_command in asm_bootstrap:
+            f.write(bootstrap_command + '\n')
         for file_path in path.glob('*.vm'):
             f.write(f"//Translating {file_path.stem}" + '\n')
             asm_commands = translate_vm_file(file_path)
