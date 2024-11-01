@@ -20,6 +20,35 @@ class Translator:
         self.label_counter += 1
         return f"{self.file_name}.{name}.{self.label_counter}"
 
+
+    def translate_label(self, name):
+        """Translates label command into asm"""
+        return [
+            f"// label ${name}",
+            f"({self.file_name}.{name})"]
+
+    def translate_goto(self, name):
+        """Translates goto comamnd into asm"""
+        return [
+            f"// goto ${name}",
+            f"@{self.file_name}.{name}",
+            "0;JMP"
+        ]
+
+    def translate_if_goto(self, name):
+        """translates if-goto command into asm"""
+        return [
+            f"// if-goto ${name}",
+            # pop comparison value from stack
+            "@SP",
+            "M=M-1",
+            "A=M",
+            "D=M",
+            # goto if comparison value is true (not 0)
+            f"@{self.file_name}.{name}",
+            "D;JNE"
+        ]
+
     def translate_push_cmd(self, segment, index):
         """Translates push command into asm"""
         segment_table = {

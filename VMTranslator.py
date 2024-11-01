@@ -27,6 +27,14 @@ def translate_line(translator, line):
     if command == "pop":
         return translator.translate_pop_cmd(parts[1], int(parts[2]))
 
+    if command == "label":
+        return translator.translate_label(parts[1])
+
+    if command == "goto":
+        return translator.translate_goto(parts[1])
+
+    if command == "if-goto":
+        return translator.translate_if_goto(parts[1])
 
 def translate_vm_file(file_path):
     file_name = file_path.stem
