@@ -1,3 +1,14 @@
+"""
+According to Hack Machine Language Specification the following built in symbols exist
+- SP points to RAM[0]
+- LCL points to RAM[1]
+- ARG points to RAM[2]
+- THIS points to RAM[3]
+- THAT poinst to RAM[4]
+- R13,R14,R15 point to RAM[13,14,15]
+"""
+
+
 class Translator:
     """Peforms the translation from VM -> ASM for one VM file"""
 
