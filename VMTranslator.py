@@ -71,11 +71,11 @@ def translate_vm_file(file_path):
 
 
 def translate_single_file(path):
-    asm_bootstrap = generate_bootstrap_asm()
+    # asm_bootstrap = generate_bootstrap_asm()
     asm_commands = translate_vm_file(path)
     with open(path.with_suffix('.asm'), 'w', encoding='UTF-8') as f:
-        for bootstrap_command in asm_bootstrap:
-            f.write(bootstrap_command + '\n')
+        # for bootstrap_command in asm_bootstrap:
+        #     f.write(bootstrap_command + '\n')
         for command_list in asm_commands:
             f.write('\n'.join(command_list) + '\n')
 
